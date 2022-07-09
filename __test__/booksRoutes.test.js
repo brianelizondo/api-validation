@@ -144,6 +144,78 @@ describe("Books Routes Test", function (){
     });
 
     /**
+    * POST /books/[isbn]
+    * Updates partially a book and responds with the updated book
+    */
+    describe("POST /books/[isbn]", function (){
+        test("Update partially a book", async function (){
+            let response = await request(app).post(`/books/${bookTestUpdated.isbn}`)
+                .send({ 
+                    book: { 
+                        "title": "Title Updated",
+                        "year": 2022
+                    } 
+                });
+
+            expect(response.statusCode).toEqual(200);
+            expect(response.body).toEqual({ 
+                book: {
+                    isbn: bookTestUpdated.isbn,
+                    amazon_url: bookTestUpdated.amazon_url,
+                    author: bookTestUpdated.author,
+                    language: bookTestUpdated.language,
+                    pages: bookTestUpdated.pages,
+                    publisher: bookTestUpdated.publisher,
+                    title: "Title Updated",
+                    year: 2022
+                } 
+            });
+        });
+
+        test("error for invalid input data (is not string)", async function (){
+            let response = await request(app).put(`/books/${bookTestUpdated.isbn}`)
+                .send({ book: { "isbn": 123 } });
+
+            expect(response.statusCode).toEqual(400);
+            expect(response.body).toEqual({ 
+                "error": expect.any(Object),
+                "message": expect.any(Array)
+            });
+        });
+
+        test("error for invalid input data (is not number)", async function (){
+            let response = await request(app).put(`/books/${bookTestUpdated.isbn}`)
+                .send({ book: { "pages": "acb" } });
+
+            expect(response.statusCode).toEqual(400);
+            expect(response.body).toEqual({ 
+                "error": expect.any(Object),
+                "message": expect.any(Array)
+            });
+        });
+
+        test("error for invalid input data (is not url)", async function (){
+            let response = await request(app).put(`/books/${bookTestUpdated.isbn}`)
+                .send({ book: { "amazon_url": "www.com" } });
+
+            expect(response.statusCode).toEqual(400);
+            expect(response.body).toEqual({ 
+                "error": expect.any(Object),
+                "message": expect.any(Array)
+            });
+        });
+
+        test("error for invalid isbn", async function (){
+            let response = await request(app).get("/books/abc123");
+            expect(response.statusCode).toEqual(404);
+            expect(response.body).toEqual({ 
+                "error": expect.any(Object),
+                "message": expect.any(String)
+            });
+        });
+    });
+
+    /**
     * GET /books
     * Responds with a list of all the books
     */
